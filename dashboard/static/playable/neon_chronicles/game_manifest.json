@@ -1,0 +1,128 @@
+{
+  "game_title": "Neon Chronicles: 2.5D Cyberpunk RPG",
+  "tile_size": 32,
+  "spritesheets": {
+    "player": {
+      "path": "assets/player_spritesheet.png",
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 6
+        },
+        "run": {
+          "row": 1,
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 10
+        },
+        "attack": {
+          "row": 2,
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "fps": 12
+        }
+      }
+    },
+    "monster": {
+      "path": "assets/monster_slime.png",
+      "frameWidth": 40,
+      "frameHeight": 40,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 5
+        },
+        "attack": {
+          "row": 1,
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 8
+        },
+        "death": {
+          "row": 2,
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "fps": 6
+        }
+      }
+    }
+  },
+  "tilesets": {
+    "dungeon": {
+      "path": "assets/dungeon_tileset.png",
+      "tileSize": 32,
+      "tiles": {
+        "0": {
+          "name": "floor_stone",
+          "walkable": true
+        },
+        "1": {
+          "name": "floor_carved",
+          "walkable": true
+        },
+        "2": {
+          "name": "wall_top",
+          "walkable": false
+        },
+        "3": {
+          "name": "wall_face",
+          "walkable": false
+        },
+        "4": {
+          "name": "chest",
+          "walkable": false,
+          "interactive": true
+        },
+        "5": {
+          "name": "portal",
+          "walkable": true,
+          "trigger": "exit"
+        },
+        "6": {
+          "name": "spikes",
+          "walkable": true,
+          "hazard": true
+        },
+        "7": {
+          "name": "water",
+          "walkable": false
+        }
+      }
+    }
+  },
+  "icons": {
+    "potion_hp": "dashboard/static/playable\\neon_chronicles\\assets\\icons\\icon_potion_hp.png",
+    "potion_mp": "dashboard/static/playable\\neon_chronicles\\assets\\icons\\icon_potion_mp.png",
+    "skill_slash": "dashboard/static/playable\\neon_chronicles\\assets\\icons\\icon_skill_slash.png"
+  }
+}

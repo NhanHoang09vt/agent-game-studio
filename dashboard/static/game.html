@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playable Game Prototype — AI Game Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body { background-color: #090d16; color: #f8fafc; overflow: hidden; }
+    canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(56, 189, 248, 0.2);
+    }
+    .hud-glass {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col items-center justify-center select-none font-sans">
+
+  <!-- TOP HEADER & CONTROLS INFO -->
+  <header class="w-full max-w-4xl px-4 py-2 flex items-center justify-between text-xs text-slate-400">
+    <div class="flex items-center space-x-3">
+      <a href="/" class="hover:text-white flex items-center space-x-1.5 transition">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Studio Dashboard</span>
+      </a>
+      <span class="text-slate-700">|</span>
+      <span class="font-bold text-white uppercase tracking-wider">Playable Prototype Demo</span>
+      <span class="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] px-2 py-0.5 rounded font-bold">100% Real AI Studio Assets</span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span><kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-white">WASD / Arrows</kbd> Move</span>
+      <span><kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-white">SPACE</kbd> Attack</span>
+      <span><kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-white">1</kbd> Potion</span>
+    </div>
+  </header>
+
+  <!-- GAME CANVAS CONTAINER WITH INTEGRATED HUD -->
+  <div class="relative w-[800px] h-[576px] rounded-2xl overflow-hidden border border-slate-800 bg-slate-950">
+    
+    <!-- TOP LEFT HUD: HP, MP, EXP & LEVEL -->
+    <div class="absolute top-4 left-4 z-10 hud-glass px-4 py-3 rounded-xl flex items-center space-x-3">
+      <!-- Player Avatar Frame -->
+      <div class="w-11 h-11 rounded-lg bg-slate-800 border border-cyan-500/50 flex items-center justify-center text-white text-lg overflow-hidden">
+        <i class="fa-solid fa-user-ninja text-cyan-400"></i>
+      </div>
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between text-[11px] font-bold">
+          <span class="text-slate-200">KIRA (Warrior)</span>
+          <span class="text-amber-400" id="hud-level">LV. 1</span>
+        </div>
+        <!-- HP Bar -->
+        <div class="w-36 h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+          <div id="hud-hp-bar" class="h-full bg-gradient-to-r from-red-600 to-rose-500 transition-all duration-150" style="width: 100%;"></div>
+        </div>
+        <!-- Mana Bar -->
+        <div class="w-36 h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+          <div id="hud-mp-bar" class="h-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all duration-150" style="width: 100%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP RIGHT HUD: SCORE, CHEST & MONSTERS -->
+    <div class="absolute top-4 right-4 z-10 hud-glass px-4 py-2.5 rounded-xl flex items-center space-x-4 text-xs font-semibold">
+      <div class="flex items-center space-x-1.5 text-amber-400">
+        <i class="fa-solid fa-coins"></i>
+        <span id="hud-score">0 Gold</span>
+      </div>
+      <div class="flex items-center space-x-1.5 text-rose-400">
+        <i class="fa-solid fa-skull"></i>
+        <span id="hud-kills">0 Slimes Defeated</span>
+      </div>
+    </div>
+
+    <!-- BOTTOM ACTION BAR: SKILL & POTION -->
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 hud-glass px-3 py-2 rounded-xl flex items-center space-x-3">
+      <!-- Attack Skill -->
+      <div class="relative w-10 h-10 rounded-lg bg-slate-800 border-2 border-cyan-500 flex items-center justify-center text-cyan-300 cursor-pointer active:scale-95 transition" title="Plasma Slash (Space)">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span class="absolute bottom-0 right-1 text-[9px] font-bold text-slate-400">SPACE</span>
+      </div>
+      <!-- Health Potion -->
+      <div onclick="usePotion()" class="relative w-10 h-10 rounded-lg bg-slate-800 border-2 border-amber-500 flex items-center justify-center text-amber-400 cursor-pointer active:scale-95 transition" title="Use Potion (1)">
+        <i class="fa-solid fa-flask"></i>
+        <span class="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-[9px] w-4 h-4 flex items-center justify-center font-bold" id="hud-potions">3</span>
+        <span class="absolute bottom-0 right-1 text-[9px] font-bold text-slate-400">1</span>
+      </div>
+    </div>
+
+    <!-- CANVAS VIEWPORT -->
+    <canvas id="gameCanvas" width="800" height="576" class="w-full h-full block"></canvas>
+  </div>
+
+  <footer class="mt-3 text-xs text-slate-500 flex items-center space-x-2">
+    <span>Engine: HTML5 Canvas 2.5D Pixel Shaded</span>
+    <span>•</span>
+    <span>Sound FX: Procedural Web Audio Synth</span>
+  </footer>
+
+  <!-- PLAYABLE GAME ENGINE JAVASCRIPT -->
+  <script>
+    // -------------------------------------------------------------------------
+    // 1. PROCEDURAL SOUND SYNTHESIZER (WEB AUDIO API)
+    // -------------------------------------------------------------------------
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioContext();
+    }
+
+    function playSound(type) {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'slash') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } else if (type === 'hit') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.2);
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      } else if (type === 'coin') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(987, now);
+        osc.frequency.setValueAtTime(1318, now + 0.08);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      } else if (type === 'potion') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523, now);
+        osc.frequency.exponentialRampToValueAtTime(783, now + 0.2);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. ASSET ASYNC LOADER
+    // -------------------------------------------------------------------------
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const assets = {
+      player: new Image(),
+      monster: new Image(),
+      tileset: new Image(),
+    };
+
+    assets.player.src = '/static/playable/neon_chronicles/assets/player_spritesheet.png';
+    assets.monster.src = '/static/playable/neon_chronicles/assets/monster_slime.png';
+    assets.tileset.src = '/static/playable/neon_chronicles/assets/dungeon_tileset.png';
+
+    // -------------------------------------------------------------------------
+    // 3. DUNGEON MAP DEFINITION (25 cols x 18 rows of 32px tiles = 800x576)
+    // -------------------------------------------------------------------------
+    const TILE_SIZE = 32;
+    const MAP_COLS = 25;
+    const MAP_ROWS = 18;
+
+    // Tile indices: 0: Floor, 1: Carved Floor, 2: Wall Top, 3: Wall Face, 4: Chest, 5: Portal, 6: Spikes
+    const map = [
+      [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+      [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+      [2,3,0,0,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0,0,0,3,2],
+      [2,3,0,1,0,0,0,0,0,0,0,3,3,0,0,0,0,1,0,0,0,4,0,3,2],
+      [2,3,0,0,0,2,2,2,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,3,2],
+      [2,3,0,0,0,3,3,3,0,0,0,0,0,0,0,3,3,3,0,0,0,0,0,3,2],
+      [2,3,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,3,2],
+      [2,3,0,0,0,0,0,0,0,0,0,6,6,0,0,0,0,0,0,0,0,0,0,3,2],
+      [2,3,0,0,0,2,2,2,0,0,0,6,6,0,0,0,2,2,2,0,0,0,0,3,2],
+      [2,3,0,0,0,3,3,3,0,0,0,0,0,0,0,0,3,3,3,0,0,0,0,3,2],
+      [2,3,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,3,2],
+      [2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,2],
+      [2,3,0,0,0,2,2,2,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,3,2],
+      [2,3,0,0,0,3,3,3,0,0,0,0,0,0,0,3,3,3,0,0,0,0,0,3,2],
+      [2,3,0,1,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,1,0,0,0,3,2],
+      [2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,3,2],
+      [2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2],
+      [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]
+    ];
+
+    function isWalkable(x, y) {
+      const col = Math.floor(x / TILE_SIZE);
+      const row = Math.floor(y / TILE_SIZE);
+      if (col < 0 || col >= MAP_COLS || row < 0 || row >= MAP_ROWS) return false;
+      const tile = map[row][col];
+      return tile === 0 || tile === 1 || tile === 5 || tile === 6;
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. ENTITIES: PLAYER & MONSTERS
+    // -------------------------------------------------------------------------
+    const player = {
+      x: 100,
+      y: 120,
+      speed: 3,
+      hp: 100,
+      maxHp: 100,
+      mp: 50,
+      maxMp: 50,
+      potions: 3,
+      score: 0,
+      kills: 0,
+      level: 1,
+      facing: 'right',
+      state: 'idle', // idle, run, attack
+      animFrame: 0,
+      animTimer: 0,
+      isAttacking: false,
+      attackCooldown: 0,
+      attackBox: { x: 0, y: 0, width: 36, height: 36 },
+    };
+
+    class SlimeMonster {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.originX = x;
+        this.originY = y;
+        this.hp = 30;
+        this.maxHp = 30;
+        this.speed = 1.2;
+        this.state = 'idle'; // idle, attack, death
+        this.animFrame = 0;
+        this.animTimer = 0;
+        this.alive = true;
+        this.deathTimer = 0;
+      }
+
+      update() {
+        if (!this.alive) return;
+
+        this.animTimer++;
+        if (this.animTimer % 8 === 0) {
+          this.animFrame = (this.animFrame + 1) % 4;
+        }
+
+        // Distance to player
+        const dx = player.x - this.x;
+        const dy = player.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // Aggro AI
+        if (dist < 180 && dist > 15) {
+          this.state = 'attack';
+          const nx = this.x + (dx / dist) * this.speed;
+          const ny = this.y + (dy / dist) * this.speed;
+          if (isWalkable(nx, ny)) {
+            this.x = nx;
+            this.y = ny;
+          }
+        } else {
+          this.state = 'idle';
+        }
+
+        // Hit player
+        if (dist <= 20 && this.alive) {
+          player.hp = Math.max(0, player.hp - 0.2);
+          updateHUD();
+        }
+      }
+
+      draw() {
+        const frameW = 40;
+        const frameH = 40;
+        let row = 0;
+        if (this.state === 'attack') row = 1;
+        if (!this.alive) row = 2;
+
+        const sx = this.animFrame * frameW;
+        const sy = row * frameH;
+
+        if (assets.monster.complete && assets.monster.naturalWidth > 0) {
+          ctx.drawImage(assets.monster, sx, sy, frameW, frameH, this.x - 20, this.y - 20, frameW, frameH);
+        } else {
+          // Fallback shape
+          ctx.fillStyle = '#10b981';
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, 14, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Health bar
+        if (this.alive && this.hp < this.maxHp) {
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(this.x - 15, this.y - 24, 30, 4);
+          ctx.fillStyle = '#ef4444';
+          ctx.fillRect(this.x - 15, this.y - 24, (this.hp / this.maxHp) * 30, 4);
+        }
+      }
+    }
+
+    const monsters = [
+      new SlimeMonster(320, 220),
+      new SlimeMonster(560, 160),
+      new SlimeMonster(200, 380),
+      new SlimeMonster(450, 420),
+      new SlimeMonster(640, 360),
+    ];
+
+    const damageNumbers = [];
+
+    // -------------------------------------------------------------------------
+    // 5. INPUT HANDLING
+    // -------------------------------------------------------------------------
+    const keys = {};
+    window.addEventListener('keydown', (e) => {
+      initAudio();
+      keys[e.key.toLowerCase()] = true;
+      if (e.key === ' ' || e.code === 'Space') {
+        performAttack();
+      }
+      if (e.key === '1') {
+        usePotion();
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      keys[e.key.toLowerCase()] = false;
+    });
+
+    function performAttack() {
+      if (player.attackCooldown > 0) return;
+      player.isAttacking = true;
+      player.state = 'attack';
+      player.animFrame = 0;
+      player.attackCooldown = 15;
+      playSound('slash');
+
+      // Calculate hitbox
+      const reach = 32;
+      const ax = player.facing === 'right' ? player.x + 10 : player.x - 10 - reach;
+      const ay = player.y - 16;
+
+      monsters.forEach(m => {
+        if (!m.alive) return;
+        const dist = Math.hypot(m.x - (player.facing === 'right' ? player.x + 16 : player.x - 16), m.y - player.y);
+        if (dist < 40) {
+          const dmg = 15;
+          m.hp -= dmg;
+          playSound('hit');
+          damageNumbers.push({ x: m.x, y: m.y - 15, text: `-${dmg}`, alpha: 1.0, color: '#f43f5e' });
+
+          if (m.hp <= 0) {
+            m.alive = false;
+            player.score += 25;
+            player.kills += 1;
+            damageNumbers.push({ x: m.x, y: m.y - 30, text: `+25G`, alpha: 1.0, color: '#fbbf24' });
+            playSound('coin');
+          }
+        }
+      });
+      updateHUD();
+    }
+
+    function usePotion() {
+      if (player.potions > 0 && player.hp < player.maxHp) {
+        player.potions--;
+        player.hp = Math.min(player.maxHp, player.hp + 40);
+        playSound('potion');
+        damageNumbers.push({ x: player.x, y: player.y - 20, text: `+40 HP`, alpha: 1.0, color: '#10b981' });
+        updateHUD();
+      }
+    }
+
+    function updateHUD() {
+      document.getElementById('hud-hp-bar').style.width = `${(player.hp / player.maxHp) * 100}%`;
+      document.getElementById('hud-mp-bar').style.width = `${(player.mp / player.maxMp) * 100}%`;
+      document.getElementById('hud-score').innerText = `${player.score} Gold`;
+      document.getElementById('hud-kills').innerText = `${player.kills} Slimes Defeated`;
+      document.getElementById('hud-potions').innerText = player.potions;
+    }
+
+    // -------------------------------------------------------------------------
+    // 6. MAIN GAME LOOP
+    // -------------------------------------------------------------------------
+    function update() {
+      if (player.attackCooldown > 0) player.attackCooldown--;
+
+      let moveX = 0;
+      let moveY = 0;
+
+      if (keys['w'] || keys['arrowup']) moveY -= 1;
+      if (keys['s'] || keys['arrowdown']) moveY += 1;
+      if (keys['a'] || keys['arrowleft']) { moveX -= 1; player.facing = 'left'; }
+      if (keys['d'] || keys['arrowright']) { moveX += 1; player.facing = 'right'; }
+
+      if (moveX !== 0 || moveY !== 0) {
+        const len = Math.hypot(moveX, moveY);
+        const nx = player.x + (moveX / len) * player.speed;
+        const ny = player.y + (moveY / len) * player.speed;
+
+        if (isWalkable(nx, player.y)) player.x = nx;
+        if (isWalkable(player.x, ny)) player.y = ny;
+
+        if (!player.isAttacking) {
+          player.state = 'run';
+        }
+      } else if (!player.isAttacking) {
+        player.state = 'idle';
+      }
+
+      // Animation frame step
+      player.animTimer++;
+      if (player.animTimer % 6 === 0) {
+        player.animFrame = (player.animFrame + 1) % 4;
+        if (player.state === 'attack' && player.animFrame === 3) {
+          player.isAttacking = false;
+          player.state = 'idle';
+        }
+      }
+
+      // Check chest interaction
+      const pCol = Math.floor(player.x / TILE_SIZE);
+      const pRow = Math.floor(player.y / TILE_SIZE);
+      if (map[pRow] && map[pRow][pCol] === 4) {
+        map[pRow][pCol] = 0; // opened
+        player.score += 50;
+        player.potions += 1;
+        playSound('coin');
+        damageNumbers.push({ x: player.x, y: player.y - 20, text: `CHEST! +50G +1 POTION`, alpha: 1.0, color: '#f59e0b' });
+        updateHUD();
+      }
+
+      // Update monsters
+      monsters.forEach(m => m.update());
+
+      // Update floating damage numbers
+      for (let i = damageNumbers.length - 1; i >= 0; i--) {
+        const dn = damageNumbers[i];
+        dn.y -= 0.6;
+        dn.alpha -= 0.02;
+        if (dn.alpha <= 0) damageNumbers.splice(i, 1);
+      }
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 1. Draw Map Tiles
+      for (let r = 0; r < MAP_ROWS; r++) {
+        for (let c = 0; c < MAP_COLS; c++) {
+          const tIdx = map[r][c];
+          const tx = c * TILE_SIZE;
+          const ty = r * TILE_SIZE;
+
+          if (assets.tileset.complete && assets.tileset.naturalWidth > 0) {
+            const sx = (tIdx % 4) * TILE_SIZE;
+            const sy = Math.floor(tIdx / 4) * TILE_SIZE;
+            ctx.drawImage(assets.tileset, sx, sy, TILE_SIZE, TILE_SIZE, tx, ty, TILE_SIZE, TILE_SIZE);
+          } else {
+            // Fallback rendering
+            ctx.fillStyle = tIdx === 2 || tIdx === 3 ? '#0f172a' : tIdx === 4 ? '#b45309' : '#1e293b';
+            ctx.fillRect(tx, ty, TILE_SIZE, TILE_SIZE);
+            ctx.strokeStyle = '#334155';
+            ctx.strokeRect(tx, ty, TILE_SIZE, TILE_SIZE);
+          }
+        }
+      }
+
+      // 2. Draw Monsters
+      monsters.forEach(m => m.draw());
+
+      // 3. Draw Player Sprite
+      const frameW = 48;
+      const frameH = 48;
+      let row = 0;
+      if (player.state === 'run') row = 1;
+      if (player.state === 'attack') row = 2;
+
+      const sx = player.animFrame * frameW;
+      const sy = row * frameH;
+
+      ctx.save();
+      if (player.facing === 'left') {
+        ctx.translate(player.x, player.y);
+        ctx.scale(-1, 1);
+        ctx.drawImage(assets.player, sx, sy, frameW, frameH, -frameW/2, -frameH/2 - 4, frameW, frameH);
+      } else {
+        ctx.drawImage(assets.player, sx, sy, frameW, frameH, player.x - frameW/2, player.y - frameH/2 - 4, frameW, frameH);
+      }
+      ctx.restore();
+
+      // 4. Draw Floating Damage Numbers
+      damageNumbers.forEach(dn => {
+        ctx.fillStyle = dn.color;
+        ctx.globalAlpha = Math.max(0, dn.alpha);
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(dn.text, dn.x - 10, dn.y);
+        ctx.globalAlpha = 1.0;
+      });
+    }
+
+    function gameLoop() {
+      update();
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Start
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>

@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Game Development Studio — Multi-Agent Edition</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+            },
+            studio: {
+              dark: '#0f172a',
+              card: '#1e293b',
+              border: '#334155',
+              accent: '#38bdf8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .image-render-pixel {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex font-sans antialiased">
+
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 select-none">
+    <div>
+      <!-- Brand Header -->
+      <div class="p-5 border-b border-slate-800 flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
+          <i class="fa-solid fa-gamepad text-lg"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-sm tracking-wide text-white leading-tight">AI GAME STUDIO</h1>
+          <p class="text-[10px] text-brand-500 font-semibold uppercase tracking-wider">Multi-Agent Edition</p>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="p-3 space-y-1 text-sm font-medium">
+        <button onclick="switchTab('overview')" id="nav-overview" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition group bg-slate-800/80 text-brand-400 font-semibold">
+          <i class="fa-solid fa-chart-pie w-5 text-center group-hover:text-brand-400"></i>
+          <span>Studio Overview</span>
+        </button>
+        <button onclick="switchTab('providers')" id="nav-providers" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition group">
+          <i class="fa-solid fa-microchip w-5 text-center group-hover:text-cyan-400"></i>
+          <span>AI Providers</span>
+        </button>
+        <button onclick="switchTab('agents')" id="nav-agents" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition group">
+          <i class="fa-solid fa-users-gear w-5 text-center group-hover:text-purple-400"></i>
+          <span>Studio Agents</span>
+          <span class="ml-auto bg-slate-800 text-[11px] px-2 py-0.5 rounded-full text-slate-400" id="badge-agent-count">50</span>
+        </button>
+        <button onclick="switchTab('orchestration')" id="nav-orchestration" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition group">
+          <i class="fa-solid fa-diagram-project w-5 text-center group-hover:text-amber-400"></i>
+          <span>Task Orchestration</span>
+        </button>
+        <button onclick="switchTab('art')" id="nav-art" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition group">
+          <i class="fa-solid fa-palette w-5 text-center group-hover:text-pink-400"></i>
+          <span>Art & Asset Studio</span>
+          <span class="ml-auto bg-pink-950 text-pink-300 border border-pink-800 text-[10px] px-1.5 py-0.2 rounded font-bold">Ready</span>
+        </button>
+        <button onclick="switchTab('projects')" id="nav-projects" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition group">
+          <i class="fa-solid fa-folder-tree w-5 text-center group-hover:text-emerald-400"></i>
+          <span>Game Projects</span>
+        </button>
+        <button onclick="switchTab('skills')" id="nav-skills" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition group">
+          <i class="fa-solid fa-bolt w-5 text-center group-hover:text-yellow-400"></i>
+          <span>Skills Catalog</span>
+          <span class="ml-auto bg-slate-800 text-[11px] px-2 py-0.5 rounded-full text-slate-400" id="badge-skills-count">74</span>
+        </button>
+
+        <div class="pt-3">
+          <a href="/game" target="_blank" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-emerald-950/40 text-emerald-400 hover:bg-emerald-900/60 border border-emerald-800/80 font-bold transition group shadow-lg shadow-emerald-900/20">
+            <i class="fa-solid fa-circle-play w-5 text-center text-emerald-400 group-hover:scale-110 transition-transform"></i>
+            <span>Play Game Demo</span>
+            <i class="fa-solid fa-arrow-up-right-from-square ml-auto text-[10px]"></i>
+          </a>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Bottom Status Bar -->
+    <div class="p-4 border-t border-slate-800 text-xs text-slate-500 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-slate-400 font-medium">Orchestrator Online</span>
+      </div>
+      <span class="text-[10px] bg-slate-800 px-2 py-1 rounded">v2.0.0</span>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEWPORT -->
+  <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-950">
+    <!-- Top Bar -->
+    <header class="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900/50 backdrop-blur shrink-0 sticky top-0 z-10">
+      <div class="flex items-center space-x-3">
+        <h2 id="view-title" class="text-lg font-bold text-white tracking-wide">Studio Overview</h2>
+        <span class="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full border border-slate-700">Autonomous & Collaborative</span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <a href="/game" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center space-x-1.5 transition">
+          <i class="fa-solid fa-gamepad"></i>
+          <span>Launch Prototype Demo</span>
+        </a>
+        <div class="h-4 w-px bg-slate-800"></div>
+        <button onclick="refreshData()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition" title="Refresh Telemetry">
+          <i class="fa-solid fa-arrows-rotate"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT CONTAINERS -->
+    <div class="p-8 space-y-8 flex-1">
+
+      <!-- ==================================================================== -->
+      <!-- TAB 1: OVERVIEW -->
+      <!-- ==================================================================== -->
+      <section id="tab-overview" class="space-y-6">
+        <!-- KPI Metric Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Agents</span>
+              <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
+                <i class="fa-solid fa-users"></i>
+              </div>
+            </div>
+            <div class="mt-4 flex items-baseline space-x-2">
+              <span class="text-3xl font-extrabold text-white" id="kpi-agents">50</span>
+              <span class="text-xs text-purple-400 font-medium">3 Tiers</span>
+            </div>
+            <p class="mt-1 text-xs text-slate-500">Directors, Leads & Engine Specialists</p>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Connected Providers</span>
+              <div class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                <i class="fa-solid fa-network-wired"></i>
+              </div>
+            </div>
+            <div class="mt-4 flex items-baseline space-x-2">
+              <span class="text-3xl font-extrabold text-white" id="kpi-providers">7</span>
+              <span class="text-xs text-cyan-400 font-medium">Multi-Cloud</span>
+            </div>
+            <p class="mt-1 text-xs text-slate-500">OpenAI, Claude, Gemini, DeepSeek, Muse, Dogxiai, Custom</p>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Tokens Processed</span>
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                <i class="fa-solid fa-cubes-stacked"></i>
+              </div>
+            </div>
+            <div class="mt-4 flex items-baseline space-x-2">
+              <span class="text-3xl font-extrabold text-white" id="kpi-tokens">0</span>
+              <span class="text-xs text-emerald-400 font-medium">Tokens</span>
+            </div>
+            <p class="mt-1 text-xs text-slate-500">Across all sprint tasks</p>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Estimated API Cost</span>
+              <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                <i class="fa-solid fa-dollar-sign"></i>
+              </div>
+            </div>
+            <div class="mt-4 flex items-baseline space-x-2">
+              <span class="text-3xl font-extrabold text-white" id="kpi-cost">$0.0000</span>
+              <span class="text-xs text-amber-400 font-medium">USD</span>
+            </div>
+            <p class="mt-1 text-xs text-slate-500">Calculated per model rate</p>
+          </div>
+        </div>
+
+        <!-- Multi-Provider Model Allocation Matrix -->
+        <div class="glass-card p-6 rounded-2xl">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="text-base font-bold text-white">Active Multi-Provider Allocation</h3>
+              <p class="text-xs text-slate-400">How key studio roles are mapped across different AI model providers</p>
+            </div>
+            <button onclick="switchTab('agents')" class="text-xs text-brand-400 hover:text-brand-300 font-medium flex items-center space-x-1">
+              <span>Reassign Roles</span>
+              <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+              <div class="flex items-center justify-between text-xs mb-2">
+                <span class="font-bold text-slate-300">Creative Director</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-950 text-purple-300 border border-purple-800">Claude</span>
+              </div>
+              <p class="text-xs text-slate-400 font-mono">claude-3-7-sonnet</p>
+              <p class="text-[11px] text-slate-500 mt-2">Vision, aesthetics & conflict resolution</p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+              <div class="flex items-center justify-between text-xs mb-2">
+                <span class="font-bold text-slate-300">Technical Director</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-green-950 text-green-300 border border-green-800">OpenAI</span>
+              </div>
+              <p class="text-xs text-slate-400 font-mono">gpt-4o / o3-mini</p>
+              <p class="text-[11px] text-slate-500 mt-2">Architecture, ADRs & engine safety</p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+              <div class="flex items-center justify-between text-xs mb-2">
+                <span class="font-bold text-slate-300">Lead Programmer</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-950 text-blue-300 border border-blue-800">DeepSeek</span>
+              </div>
+              <p class="text-xs text-slate-400 font-mono">deepseek-chat / R1</p>
+              <p class="text-[11px] text-slate-500 mt-2">Core code, algorithms & refactoring</p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+              <div class="flex items-center justify-between text-xs mb-2">
+                <span class="font-bold text-slate-300">Art & Game Design</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800">Gemini</span>
+              </div>
+              <p class="text-xs text-slate-400 font-mono">gemini-2.5-pro</p>
+              <p class="text-[11px] text-slate-500 mt-2">Visual bible, GDDs & 2M context</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================================== -->
+      <!-- TAB 2: PROVIDERS -->
+      <!-- ==================================================================== -->
+      <section id="tab-providers" class="hidden space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-base font-bold text-white">AI Provider Management</h3>
+            <p class="text-xs text-slate-400">Test connections, manage API credentials, and monitor provider health</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="providers-list-container"></div>
+      </section>
+
+      <!-- ==================================================================== -->
+      <!-- TAB 3: AGENTS -->
+      <!-- ==================================================================== -->
+      <section id="tab-agents" class="hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-base font-bold text-white">Studio Roster (50 Agents)</h3>
+            <p class="text-xs text-slate-400">Assign models, configure prompts, and inspect live agent lifecycles</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <select id="agent-tier-filter" onchange="renderAgents()" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded-lg px-3 py-2">
+              <option value="all">All Tiers</option>
+              <option value="1">Tier 1 — Directors</option>
+              <option value="2">Tier 2 — Department Leads</option>
+              <option value="3">Tier 3 — Specialists</option>
+            </select>
+            <input type="text" id="agent-search" oninput="renderAgents()" placeholder="Search agents..." class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded-lg px-3 py-2 w-48">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="agents-grid-container"></div>
+      </section>
+
+      <!-- ==================================================================== -->
+      <!-- TAB 4: ORCHESTRATION -->
+      <!-- ==================================================================== -->
+      <section id="tab-orchestration" class="hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-1 glass-card p-6 rounded-2xl space-y-4">
+            <h3 class="text-base font-bold text-white">Run Studio Task</h3>
+            <p class="text-xs text-slate-400">Dispatch a feature request through hierarchical delegation or direct agent assignment</p>
+            <div class="space-y-3 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1">Execution Mode</label>
+                <select id="task-mode" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200">
+                  <option value="delegation">Hierarchical Delegation (Director -> Lead -> Specialist)</option>
+                  <option value="direct">Direct Agent Task</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Primary Agent</label>
+                <select id="task-agent" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200">
+                  <option value="creative-director">Creative Director (Claude)</option>
+                  <option value="technical-director">Technical Director (OpenAI)</option>
+                  <option value="game-designer">Game Designer (Gemini)</option>
+                  <option value="lead-programmer">Lead Programmer (DeepSeek)</option>
+                  <option value="systems-designer">Systems Designer (Dogxiai)</option>
+                  <option value="narrative-director">Narrative Director (Muse)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Task Goal / Feature Prompt</label>
+                <textarea id="task-prompt" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200" placeholder="e.g. Design a 2.5D combo combat formula with poise breaking and stamina depletion."></textarea>
+              </div>
+              <div class="flex items-center space-x-2 pt-2">
+                <input type="checkbox" id="task-review-checkbox" checked class="rounded bg-slate-900 border-slate-700 text-brand-600">
+                <label for="task-review-checkbox" class="text-slate-300">Enable Independent Cross-Model Review</label>
+              </div>
+              <button onclick="dispatchTask()" id="btn-dispatch" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 font-bold rounded-lg text-white transition flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-play"></i>
+                <span>Execute Orchestration</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="lg:col-span-2 glass-card p-6 rounded-2xl flex flex-col space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="text-base font-bold text-white">Execution Console & Review Matrix</h3>
+              <span id="task-execution-status" class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-400">Idle</span>
+            </div>
+            <div id="execution-output-box" class="flex-1 bg-slate-950 rounded-xl p-4 font-mono text-xs text-slate-300 overflow-y-auto max-h-[500px] border border-slate-800/80 space-y-3">
+              <p class="text-slate-600">// Orchestration logs and agent outputs will stream here...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================================== -->
+      <!-- TAB 5: ART & ASSET PRODUCTION STUDIO -->
+      <!-- ==================================================================== -->
+      <section id="tab-art" class="hidden space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-6 rounded-2xl">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="text-lg font-bold text-white">AI Game Art & Asset Production Studio</h3>
+              <span class="bg-pink-950 text-pink-400 border border-pink-800 text-xs px-2.5 py-0.5 rounded-full font-bold">Playable Ready</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Full-pipeline visual asset generation: Art Bible, Characters, Monsters, Tilesets & UI Icons</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <button onclick="regenerateArtBundle()" id="btn-re-bundle" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition flex items-center space-x-2">
+              <i class="fa-solid fa-arrows-rotate"></i>
+              <span>Rebuild Asset Bundle</span>
+            </button>
+            <a href="/game" target="_blank" class="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 font-bold text-xs text-white rounded-lg shadow-lg shadow-emerald-500/20 transition flex items-center space-x-2">
+              <i class="fa-solid fa-play"></i>
+              <span>Play Game Demo</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Art Bible & Color Palette Spec -->
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h4 class="font-bold text-sm text-white">Project Art Bible (Neon Chronicles)</h4>
+            <span class="text-[11px] font-mono text-brand-400">Style: 32-bit Pixel Art • Top-Down 2.5D</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-xs">
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+              <span class="text-slate-500 text-[10px] uppercase font-bold">Primary</span>
+              <div class="h-8 rounded bg-[#065f46] border border-slate-700"></div>
+              <span class="font-mono text-[11px] text-slate-300">#065f46</span>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+              <span class="text-slate-500 text-[10px] uppercase font-bold">Secondary</span>
+              <div class="h-8 rounded bg-[#0284c7] border border-slate-700"></div>
+              <span class="font-mono text-[11px] text-slate-300">#0284c7</span>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+              <span class="text-slate-500 text-[10px] uppercase font-bold">Accent</span>
+              <div class="h-8 rounded bg-[#f43f5e] border border-slate-700"></div>
+              <span class="font-mono text-[11px] text-slate-300">#f43f5e</span>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+              <span class="text-slate-500 text-[10px] uppercase font-bold">Surface</span>
+              <div class="h-8 rounded bg-[#1e293b] border border-slate-700"></div>
+              <span class="font-mono text-[11px] text-slate-300">#1e293b</span>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+              <span class="text-slate-500 text-[10px] uppercase font-bold">Tile Size</span>
+              <div class="h-8 rounded bg-slate-800 flex items-center justify-center font-bold text-white text-xs border border-slate-700">32px</div>
+              <span class="font-mono text-[11px] text-slate-300">Grid Base</span>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+              <span class="text-slate-500 text-[10px] uppercase font-bold">Character</span>
+              <div class="h-8 rounded bg-slate-800 flex items-center justify-center font-bold text-white text-xs border border-slate-700">48px</div>
+              <span class="font-mono text-[11px] text-slate-300">Scale Unit</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generated Game Assets Showcase Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="glass-card p-5 rounded-2xl space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-sm text-white">Player Hero Spritesheet (12 Frames)</h4>
+              <span class="text-[10px] bg-slate-800 text-cyan-400 px-2 py-0.5 rounded font-mono">Idle, Run, Attack</span>
+            </div>
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center justify-center overflow-hidden">
+              <img src="/static/playable/neon_chronicles/assets/player_spritesheet.png" class="max-h-36 object-contain image-render-pixel" alt="Player Spritesheet">
+            </div>
+            <p class="text-[11px] text-slate-400">4x3 matrix of 48x48px sprites with bobbing, leg movement, and sword slashing effects.</p>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-sm text-white">Slime Monster Spritesheet (12 Frames)</h4>
+              <span class="text-[10px] bg-slate-800 text-emerald-400 px-2 py-0.5 rounded font-mono">Normal Tier</span>
+            </div>
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center justify-center overflow-hidden">
+              <img src="/static/playable/neon_chronicles/assets/monster_slime.png" class="max-h-36 object-contain image-render-pixel" alt="Monster Slime">
+            </div>
+            <p class="text-[11px] text-slate-400">Bounce squash/stretch, aggressive spike lunge, and splat death sequence.</p>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-sm text-white">Modular Dungeon Tileset (16 Tiles)</h4>
+              <span class="text-[10px] bg-slate-800 text-amber-400 px-2 py-0.5 rounded font-mono">32x32px Grid</span>
+            </div>
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center justify-center overflow-hidden">
+              <img src="/static/playable/neon_chronicles/assets/dungeon_tileset.png" class="max-h-36 object-contain image-render-pixel" alt="Dungeon Tileset">
+            </div>
+            <p class="text-[11px] text-slate-400">Carved floor, solid walls, interactive gold chest, spikes, and teleport portal.</p>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-sm text-white">Transparent UI & Skill Icons</h4>
+              <span class="text-[10px] bg-slate-800 text-rose-400 px-2 py-0.5 rounded font-mono">Alpha PNG</span>
+            </div>
+            <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 flex items-center justify-around">
+              <div class="text-center space-y-1">
+                <img src="/static/playable/neon_chronicles/assets/icons/icon_potion_hp.png" class="w-12 h-12 mx-auto" alt="HP Potion">
+                <span class="text-[10px] text-slate-400">HP Potion</span>
+              </div>
+              <div class="text-center space-y-1">
+                <img src="/static/playable/neon_chronicles/assets/icons/icon_potion_mp.png" class="w-12 h-12 mx-auto" alt="MP Potion">
+                <span class="text-[10px] text-slate-400">MP Potion</span>
+              </div>
+              <div class="text-center space-y-1">
+                <img src="/static/playable/neon_chronicles/assets/icons/icon_skill_slash.png" class="w-12 h-12 mx-auto" alt="Slash Skill">
+                <span class="text-[10px] text-slate-400">Slash Skill</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400">Standardized 32x32px icons with metallic beveled borders and transparent background.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================================== -->
+      <!-- TAB 6: PROJECTS -->
+      <!-- ==================================================================== -->
+      <section id="tab-projects" class="hidden space-y-6">
+        <div class="glass-card p-6 rounded-2xl">
+          <h3 class="text-base font-bold text-white mb-2">Multi-Game Projects</h3>
+          <p class="text-xs text-slate-400 mb-4">Isolated workspaces with dedicated GDDs, ADRs, asset pipelines and engine bindings</p>
+          <div id="projects-list-container" class="space-y-4"></div>
+        </div>
+      </section>
+
+      <!-- ==================================================================== -->
+      <!-- TAB 7: SKILLS -->
+      <!-- ==================================================================== -->
+      <section id="tab-skills" class="hidden space-y-6">
+        <div class="glass-card p-6 rounded-2xl">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-base font-bold text-white">74 Production Skills Catalog</h3>
+              <p class="text-xs text-slate-400">Standard slash commands inherited from upstream and wired into multi-provider runtime</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto pr-2" id="skills-catalog-container"></div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- MODAL: MODEL REASSIGNMENT -->
+  <div id="modal-reassign" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white" id="modal-agent-name">Reassign Model</h3>
+        <button onclick="closeModal()" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <input type="hidden" id="modal-agent-id">
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Target AI Provider</label>
+          <select id="modal-select-provider" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-200">
+            <option value="openai">OpenAI (GPT-4o, o3-mini)</option>
+            <option value="claude">Anthropic Claude (3.7 Sonnet, Opus)</option>
+            <option value="gemini">Google Gemini (2.5 Pro, Flash)</option>
+            <option value="deepseek">DeepSeek (V3, R1)</option>
+            <option value="muse">Muse AI (Narrative, Audio)</option>
+            <option value="dogxiai">Dogxiai (Game Mechanics)</option>
+            <option value="custom">Custom / Local (vLLM, Ollama)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Target AI Model</label>
+          <input type="text" id="modal-select-model" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-200 font-mono" value="gpt-4o">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Backup Model (Failover)</label>
+          <input type="text" id="modal-select-backup" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-200 font-mono" value="claude-3-5-sonnet-20241022">
+        </div>
+      </div>
+      <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-800">
+        <button onclick="closeModal()" class="px-4 py-2 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">Cancel</button>
+        <button onclick="saveModelAssignment()" class="px-4 py-2 text-xs font-bold rounded-lg bg-brand-600 hover:bg-brand-500 text-white">Save Assignment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC JAVASCRIPT -->
+  <script>
+    let studioData = {
+      overview: {},
+      providers: [],
+      agents: [],
+      projects: [],
+      skills: [],
+    };
+
+    async function loadData() {
+      try {
+        const [ovRes, provRes, agRes, projRes, skRes] = await Promise.all([
+          fetch('/api/overview').then(r => r.json()),
+          fetch('/api/providers').then(r => r.json()),
+          fetch('/api/agents').then(r => r.json()),
+          fetch('/api/projects').then(r => r.json()),
+          fetch('/api/skills').then(r => r.json()),
+        ]);
+
+        studioData.overview = ovRes;
+        studioData.providers = provRes;
+        studioData.agents = agRes;
+        studioData.projects = projRes;
+        studioData.skills = skRes;
+
+        renderOverview();
+        renderProviders();
+        renderAgents();
+        renderProjects();
+        renderSkills();
+      } catch (err) {
+        console.error("Failed to load studio data:", err);
+      }
+    }
+
+    function renderOverview() {
+      const ov = studioData.overview;
+      document.getElementById('kpi-agents').innerText = ov.total_agents || 50;
+      document.getElementById('kpi-providers').innerText = ov.total_providers || 7;
+      document.getElementById('kpi-tokens').innerText = (ov.total_tokens_used || 0).toLocaleString();
+      document.getElementById('kpi-cost').innerText = '$' + (ov.total_cost_usd || 0).toFixed(4);
+      document.getElementById('badge-agent-count').innerText = ov.total_agents || 50;
+      document.getElementById('badge-skills-count').innerText = ov.total_skills || 74;
+    }
+
+    function renderProviders() {
+      const container = document.getElementById('providers-list-container');
+      container.innerHTML = '';
+
+      studioData.providers.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'glass-card p-5 rounded-2xl space-y-4';
+        const statusBadge = p.is_configured
+          ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">API Key Configured</span>`
+          : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">Offline / Mock</span>`;
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <div class="w-3 h-3 rounded-full ${p.is_enabled ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
+              <h4 class="font-bold text-sm text-white">${p.name}</h4>
+            </div>
+            ${statusBadge}
+          </div>
+          <div class="text-xs space-y-1.5 text-slate-400">
+            <div>Default Model: <span class="font-mono text-slate-200">${p.default_model}</span></div>
+            <div>Fallback: <span class="font-mono text-slate-400">${p.fallback_model || 'None'}</span></div>
+            <div>Latency: <span class="font-mono text-cyan-400">${p.latency_ms.toFixed(1)} ms</span></div>
+            <div>Tokens: <span class="font-mono text-slate-200">${p.total_tokens_used.toLocaleString()}</span></div>
+          </div>
+          <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+            <button onclick="testConnection('${p.provider_id}')" class="text-xs px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition">Test Ping</button>
+            <span class="text-[10px] text-slate-500 font-mono">${p.provider_id}</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderAgents() {
+      const container = document.getElementById('agents-grid-container');
+      const tierFilter = document.getElementById('agent-tier-filter').value;
+      const search = document.getElementById('agent-search').value.toLowerCase();
+
+      container.innerHTML = '';
+
+      const filtered = studioData.agents.filter(item => {
+        const def = item.definition;
+        if (tierFilter !== 'all' && def.tier.toString() !== tierFilter) return false;
+        if (search && !def.name.toLowerCase().includes(search) && !def.role.toLowerCase().includes(search)) return false;
+        return true;
+      });
+
+      filtered.forEach(item => {
+        const def = item.definition;
+        const card = document.createElement('div');
+        card.className = 'glass-card p-5 rounded-2xl flex flex-col justify-between space-y-3';
+
+        const tierLabels = { 1: "Tier 1: Director", 2: "Tier 2: Department Lead", 3: "Tier 3: Specialist" };
+        const tierColor = def.tier === 1 ? "text-amber-400" : def.tier === 2 ? "text-cyan-400" : "text-purple-400";
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider ${tierColor}">${tierLabels[def.tier]}</span>
+              <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">${item.runtime_status}</span>
+            </div>
+            <h4 class="font-bold text-sm text-white">${def.name}</h4>
+            <p class="text-xs text-slate-400 line-clamp-2 mt-1">${def.role}</p>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 text-xs space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500">Provider:</span>
+              <span class="font-semibold text-brand-400 uppercase">${def.assigned_provider}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500">Model:</span>
+              <span class="font-mono text-slate-300 text-[11px] truncate max-w-[160px]">${def.assigned_model}</span>
+            </div>
+            <button onclick="openReassignModal('${def.agent_id}', '${def.name}', '${def.assigned_provider}', '${def.assigned_model}', '${def.backup_model || ''}')" class="w-full mt-2 py-1.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-200 text-xs font-medium transition">
+              Change Model
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderProjects() {
+      const container = document.getElementById('projects-list-container');
+      container.innerHTML = '';
+
+      studioData.projects.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'p-5 bg-slate-900/60 border border-slate-800 rounded-xl flex items-center justify-between';
+        div.innerHTML = `
+          <div>
+            <div class="flex items-center space-x-2">
+              <h4 class="font-bold text-white text-base">${p.name}</h4>
+              <span class="text-xs bg-brand-950 text-brand-400 border border-brand-800 px-2 py-0.5 rounded">${p.engine}</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Genre: <span class="capitalize font-medium text-slate-300">${p.genre}</span> | Stage: <span class="text-cyan-400 font-medium">${p.stage}</span> | Sprint: ${p.active_sprint}</p>
+          </div>
+          <span class="text-xs text-slate-500 font-mono">${p.project_id}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderSkills() {
+      const container = document.getElementById('skills-catalog-container');
+      container.innerHTML = '';
+
+      studioData.skills.forEach(sk => {
+        const div = document.createElement('div');
+        div.className = 'p-3.5 bg-slate-900/50 border border-slate-800/80 rounded-xl space-y-1.5';
+        div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-brand-400 font-mono">/${sk.skill_id}</span>
+            <span class="text-[10px] text-slate-500 uppercase">${sk.model_tier}</span>
+          </div>
+          <p class="text-xs text-slate-400 line-clamp-2">${sk.description}</p>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function switchTab(tabId) {
+      ['overview', 'providers', 'agents', 'orchestration', 'art', 'projects', 'skills'].forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        const nav = document.getElementById(`nav-${t}`);
+        if (el) el.classList.add('hidden');
+        if (nav) {
+          nav.classList.remove('bg-slate-800/80', 'text-brand-400', 'font-semibold');
+          nav.classList.add('text-slate-400');
+        }
+      });
+
+      const targetEl = document.getElementById(`tab-${tabId}`);
+      const activeNav = document.getElementById(`nav-${tabId}`);
+      if (targetEl) targetEl.classList.remove('hidden');
+      if (activeNav) {
+        activeNav.classList.add('bg-slate-800/80', 'text-brand-400', 'font-semibold');
+        activeNav.classList.remove('text-slate-400');
+      }
+
+      const titles = {
+        overview: "Studio Overview",
+        providers: "AI Provider Management",
+        agents: "Studio Roster & Model Assignment",
+        orchestration: "Multi-Agent Orchestration Engine",
+        art: "AI Game Art & Asset Production Studio",
+        projects: "Game Project Workspaces",
+        skills: "Game Development Skills Catalog",
+      };
+      document.getElementById('view-title').innerText = titles[tabId] || "Studio";
+    }
+
+    async function testConnection(pid) {
+      alert(`Testing ping to provider: ${pid}...`);
+      const res = await fetch(`/api/providers/${pid}/test`, { method: 'POST' }).then(r => r.json());
+      if (res.success) {
+        alert(`Success! Latency: ${res.latency_ms} ms`);
+      } else {
+        alert(`Offline or Mock: ${res.error}`);
+      }
+      loadData();
+    }
+
+    async function regenerateArtBundle() {
+      const btn = document.getElementById('btn-re-bundle');
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Generating...</span>`;
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/art/generate-bundle', { method: 'POST' }).then(r => r.json());
+        alert("Playable game asset bundle generated successfully!");
+        window.location.reload();
+      } catch (err) {
+        alert(`Failed: ${err.message}`);
+      } finally {
+        btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i><span>Rebuild Asset Bundle</span>`;
+        btn.disabled = false;
+      }
+    }
+
+    function openReassignModal(id, name, prov, mod, backup) {
+      document.getElementById('modal-agent-id').value = id;
+      document.getElementById('modal-agent-name').innerText = `Reassign: ${name}`;
+      document.getElementById('modal-select-provider').value = prov;
+      document.getElementById('modal-select-model').value = mod;
+      document.getElementById('modal-select-backup').value = backup;
+      document.getElementById('modal-reassign').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-reassign').classList.add('hidden');
+    }
+
+    async function saveModelAssignment() {
+      const id = document.getElementById('modal-agent-id').value;
+      const prov = document.getElementById('modal-select-provider').value;
+      const mod = document.getElementById('modal-select-model').value;
+      const backup = document.getElementById('modal-select-backup').value;
+
+      await fetch(`/api/agents/${id}/assign-model`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider_id: prov, model_id: mod, backup_model: backup }),
+      });
+
+      closeModal();
+      loadData();
+    }
+
+    async function dispatchTask() {
+      const mode = document.getElementById('task-mode').value;
+      const agentId = document.getElementById('task-agent').value;
+      const prompt = document.getElementById('task-prompt').value;
+      const review = document.getElementById('task-review-checkbox').checked;
+      const outputBox = document.getElementById('execution-output-box');
+      const statusBadge = document.getElementById('task-execution-status');
+      const btn = document.getElementById('btn-dispatch');
+
+      if (!prompt.trim()) {
+        alert("Please enter a task goal or prompt.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Executing...</span>`;
+      statusBadge.innerText = "Running Tasks...";
+      statusBadge.className = "text-xs px-2.5 py-1 rounded-full bg-amber-950 text-amber-400 border border-amber-800 animate-pulse";
+
+      outputBox.innerHTML = `<p class="text-brand-400">>>> Initiating Orchestration Engine...</p>`;
+
+      try {
+        if (mode === 'delegation') {
+          outputBox.innerHTML += `<p class="text-slate-400">Delegating: Executive Producer -> Creative Director -> Game Designer -> Systems Designer...</p>`;
+          const res = await fetch('/api/tasks/hierarchical-delegation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ goal: prompt }),
+          }).then(r => r.json());
+
+          outputBox.innerHTML += `
+            <div class="mt-4 p-3 bg-slate-900 rounded-lg border border-slate-800">
+              <span class="text-purple-400 font-bold">[1] Director Strategic Framing:</span>
+              <p class="text-slate-300 whitespace-pre-wrap mt-1">${res.director_output}</p>
+            </div>
+            <div class="mt-3 p-3 bg-slate-900 rounded-lg border border-slate-800">
+              <span class="text-cyan-400 font-bold">[2] Department Lead Specifications:</span>
+              <p class="text-slate-300 whitespace-pre-wrap mt-1">${res.lead_output}</p>
+            </div>
+            <div class="mt-3 p-3 bg-slate-900 rounded-lg border border-slate-800">
+              <span class="text-emerald-400 font-bold">[3] Specialist Implementation:</span>
+              <p class="text-slate-300 whitespace-pre-wrap mt-1">${res.specialist_output}</p>
+            </div>
+            <div class="mt-3 p-3 bg-slate-900 rounded-lg border border-slate-800">
+              <span class="text-amber-400 font-bold">[4] Cross-Model Consensus Review:</span>
+              <p class="text-slate-300 whitespace-pre-wrap mt-1">Consensus: ${res.review.consensus} (by ${res.review.reviewers_count} peer models)</p>
+            </div>
+          `;
+        } else {
+          const taskId = `task_${Date.now()}`;
+          const res = await fetch('/api/tasks/execute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              task_id: taskId,
+              title: "Direct Studio Task",
+              assigned_agent_id: agentId,
+              instruction: prompt,
+              enable_peer_review: review,
+            }),
+          }).then(r => r.json());
+
+          outputBox.innerHTML += `
+            <div class="mt-4 p-3 bg-slate-900 rounded-lg border border-slate-800">
+              <span class="text-brand-400 font-bold">Agent Result (${agentId}):</span>
+              <p class="text-slate-300 whitespace-pre-wrap mt-1">${res.result_content}</p>
+            </div>
+          `;
+          if (res.review_summary) {
+            outputBox.innerHTML += `
+              <div class="mt-3 p-3 bg-slate-900 rounded-lg border border-slate-800">
+                <span class="text-amber-400 font-bold">Cross-Model Review Consensus:</span>
+                <p class="text-slate-300 mt-1">${res.review_summary.consensus}</p>
+              </div>
+            `;
+          }
+        }
+        statusBadge.innerText = "Completed";
+        statusBadge.className = "text-xs px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800";
+      } catch (err) {
+        outputBox.innerHTML += `<p class="text-rose-400">Error: ${err.message}</p>`;
+        statusBadge.innerText = "Failed";
+        statusBadge.className = "text-xs px-2.5 py-1 rounded-full bg-rose-950 text-rose-400 border border-rose-800";
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-play"></i><span>Execute Orchestration</span>`;
+        loadData();
+      }
+    }
+
+    function refreshData() {
+      loadData();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadData();
+    });
+  </script>
+</body>
+</html>

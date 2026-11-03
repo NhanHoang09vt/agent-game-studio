@@ -1,0 +1,34 @@
+{
+  "project_id": "test_game",
+  "style": "pixel_art_32bit",
+  "camera": "top_down",
+  "resolution_reference": "1920x1080",
+  "tile_size_px": 32,
+  "character_height_px": 48,
+  "palette": {
+    "name": "CyberNeon Fantasy",
+    "primary": "#065f46",
+    "secondary": "#0284c7",
+    "accent": "#f43f5e",
+    "background": "#090d16",
+    "surface": "#1e293b",
+    "text": "#f1f5f9",
+    "neutrals": [
+      "#0f172a",
+      "#334155",
+      "#64748b",
+      "#94a3b8"
+    ]
+  },
+  "lighting_model": "High contrast dynamic lighting with saturated rim lights",
+  "silhouette_rule": "Strong, readable geometric shapes with minimum 20% contrast from background",
+  "outline_rule": "1px dark colored outline matching material shadow (never pure #000000)",
+  "material_standards": {
+    "metal": "High specularity, sharp 2-step highlights",
+    "cloth": "Matte shading, warm ambient bounce",
+    "energy": "Additive glow, bloom radius 4px"
+  },
+  "approved_by": "art-director",
+  "version": 1,
+  "updated_at": 1793683070.6424003
+}

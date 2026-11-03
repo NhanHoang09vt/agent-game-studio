@@ -1,0 +1,10 @@
+modes:
+  automation: collaborative
+  rigor: standard
+project:
+  engine: godot_4
+  genre: mmorpg_2.5d
+  id: neon_chronicles
+  name: 'Neon Chronicles: 2.5D Cyberpunk RPG'
+  stage: Concept
+schema_version: 2
