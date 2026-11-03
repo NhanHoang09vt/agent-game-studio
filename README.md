@@ -87,7 +87,7 @@ The 4-tier memory architecture (`Global`, `Project`, `Agent`, `Task`) guarantees
 |---|---|---|
 | **Anthropic Claude** | `claude-3-7-sonnet`, `claude-3-5-sonnet`, `claude-3-opus`, `claude-3-5-haiku` | Creative Director, Narrative Director, Localization |
 | **OpenAI** | `gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini` | Technical Director, QA Lead, AI Operations Director |
-| **Google Gemini** | `gemini-2.5-pro` (2M context), `gemini-2.5-flash` | Game Designer, Art Director, Level Designer |
+| **Google Gemini** | `gemini-3.8-flash`, `gemini-3.8-pro`, `gemini-2.5-pro` (2M context), `gemini-2.5-flash` | Game Designer, Art Director, Level Designer |
 | **DeepSeek** | `deepseek-chat` (V3), `deepseek-reasoner` (R1) | Lead Programmer, Gameplay/Engine/Network Specialists |
 | **Muse AI** | `muse-story-pro`, `muse-audio-engine` | World Builder, Dialogue Writer, Audio Director |
 | **Dogxiai** | `dogxiai-game-master`, `dogxiai-balance-bot` | Systems Designer, Economy Designer, Combat Balancer |

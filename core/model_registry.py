@@ -143,7 +143,32 @@ class ModelRegistry:
                 cost_per_million_output=4.40,
             ),
 
-            # Google Gemini
+            # Google Gemini (Including Gemini 3.8 Next-Gen)
+            ModelMetadata(
+                provider_id="gemini",
+                model_id="gemini-3.8-flash",
+                display_name="Gemini 3.8 Flash (Fast Multimodal & Tool Use)",
+                context_window=1000000,
+                max_output_tokens=8192,
+                input_modalities=[Modality.TEXT, Modality.IMAGE, Modality.AUDIO, Modality.VIDEO, Modality.DOCUMENT],
+                output_modalities=[Modality.TEXT],
+                capabilities=ModelCapabilities(vision=True, audio_input=True, tool_calling=True, structured_output=True),
+                cost_per_million_input=0.10,
+                cost_per_million_output=0.40,
+                is_default=True,
+            ),
+            ModelMetadata(
+                provider_id="gemini",
+                model_id="gemini-3.8-pro",
+                display_name="Gemini 3.8 Pro (Advanced Reasoning & Deep Multimodal)",
+                context_window=2000000,
+                max_output_tokens=8192,
+                input_modalities=[Modality.TEXT, Modality.IMAGE, Modality.AUDIO, Modality.VIDEO, Modality.DOCUMENT],
+                output_modalities=[Modality.TEXT],
+                capabilities=ModelCapabilities(vision=True, audio_input=True, tool_calling=True, structured_output=True),
+                cost_per_million_input=1.25,
+                cost_per_million_output=5.00,
+            ),
             ModelMetadata(
                 provider_id="gemini",
                 model_id="gemini-2.5-pro",
@@ -155,7 +180,6 @@ class ModelRegistry:
                 capabilities=ModelCapabilities(vision=True, audio_input=True, tool_calling=True, structured_output=True),
                 cost_per_million_input=1.25,
                 cost_per_million_output=5.00,
-                is_default=True,
             ),
             ModelMetadata(
                 provider_id="gemini",

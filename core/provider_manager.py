@@ -53,7 +53,7 @@ class ProviderManager:
         configs = [
             ("openai", "OpenAI", OpenAIAdapter, env.get("OPENAI_API_KEY"), env.get("OPENAI_BASE_URL", "https://api.openai.com/v1"), "gpt-4o", "gpt-4o-mini"),
             ("claude", "Anthropic Claude", ClaudeAdapter, env.get("ANTHROPIC_API_KEY"), env.get("ANTHROPIC_BASE_URL", "https://api.anthropic.com/v1"), "claude-3-7-sonnet-20250219", "claude-3-5-haiku-20241022"),
-            ("gemini", "Google Gemini", GeminiAdapter, env.get("GEMINI_API_KEY"), env.get("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta"), "gemini-2.5-pro", "gemini-2.5-flash"),
+            ("gemini", "Google Gemini", GeminiAdapter, env.get("GEMINI_API_KEY"), env.get("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta"), "gemini-3.8-flash", "gemini-3.8-pro"),
             ("deepseek", "DeepSeek", DeepSeekAdapter, env.get("DEEPSEEK_API_KEY"), env.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1"), "deepseek-chat", "deepseek-reasoner"),
             ("muse", "Muse AI", MuseAdapter, env.get("MUSE_API_KEY"), env.get("MUSE_BASE_URL", "https://api.museai.com/v1"), "muse-story-pro", "muse-audio-engine"),
             ("dogxiai", "Dogxiai Gaming", DogxiaiAdapter, env.get("DOGXIAI_API_KEY"), env.get("DOGXIAI_BASE_URL", "https://api.dogxiai.com/v1"), "dogxiai-game-master", "dogxiai-balance-bot"),

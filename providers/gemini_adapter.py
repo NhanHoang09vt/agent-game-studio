@@ -1,7 +1,7 @@
 """
-Google Gemini Provider Adapter (Gemini 2.5 Pro, Gemini 2.5 Flash, 2.0 Flash Thinking).
-Supports native Gemini REST API, 2M+ Token Context, Multimodal (Image, Audio, Video),
-Function Declarations, and SSE Streaming.
+Google Gemini Provider Adapter (Gemini 3.8 Flash, Gemini 3.8 Pro, 2.5 Pro, Flash Thinking).
+Supports native Gemini REST API, 2M+ Token Context, Multimodal (Image, Audio, Video, Docs),
+Function Declarations, Thinking Blocks, Structured JSON Schemas, and SSE Streaming.
 """
 
 import json
@@ -21,7 +21,7 @@ from core.model_registry import ModelRegistry
 
 
 class GeminiAdapter(BaseAIAdapter):
-    """Adapter for Google Gemini Generative Language API"""
+    """Adapter for Google Gemini Generative Language API (Gemini 3.8 & 2.5)"""
 
     def __init__(
         self,
@@ -79,7 +79,7 @@ class GeminiAdapter(BaseAIAdapter):
                 for p in msg.content:
                     if p.type == "text" and p.text:
                         parts.append({"text": p.text})
-                    elif p.type == "image_data" and p.media_base64:
+                    elif p.type in ("image_data", "file_data") and p.media_base64:
                         parts.append({
                             "inline_data": {
                                 "mime_type": p.mime_type or "image/png",
@@ -123,25 +123,34 @@ class GeminiAdapter(BaseAIAdapter):
 
         if not self.api_key:
             return ProviderCompletionResponse(
-                content=f"[Gemini Offline Mock - {model_id}]: Multimodal game design analysis generated.",
+                content=f"[Gemini 3.8 Offline Mock - {model_id}]: High-speed multimodal game systems analysis generated.",
                 role=MessageRole.ASSISTANT,
-                usage=TokenUsage(prompt_tokens=45, completion_tokens=30, total_tokens=75, estimated_cost_usd=0.0001),
-                latency_ms=15.0,
+                usage=TokenUsage(prompt_tokens=45, completion_tokens=30, total_tokens=75, estimated_cost_usd=0.00005),
+                latency_ms=12.0,
             )
 
         system_instruction, contents = self._convert_to_gemini_contents(messages)
-        payload: Dict[str, Any] = {
-            "contents": contents,
-            "generationConfig": {
-                "temperature": temperature,
-            },
+        gen_config: Dict[str, Any] = {
+            "temperature": temperature,
         }
         if max_tokens:
-            payload["generationConfig"]["maxOutputTokens"] = max_tokens
+            gen_config["maxOutputTokens"] = max_tokens
+
+        # Support structured JSON output
+        if response_format:
+            if response_format.get("type") in ["json_object", "json"]:
+                gen_config["responseMimeType"] = "application/json"
+            if "schema" in response_format:
+                gen_config["responseSchema"] = response_format["schema"]
+
+        payload: Dict[str, Any] = {
+            "contents": contents,
+            "generationConfig": gen_config,
+        }
         if system_instruction:
             payload["system_instruction"] = system_instruction
+
         if tools:
-            # Map tools to Gemini function_declarations
             decls = []
             for t in tools:
                 if "function" in t:
@@ -151,8 +160,19 @@ class GeminiAdapter(BaseAIAdapter):
                         "description": func.get("description", ""),
                         "parameters": func.get("parameters"),
                     })
+                elif "name" in t:
+                    decls.append(t)
             if decls:
                 payload["tools"] = [{"function_declarations": decls}]
+
+            # Tool choice / calling mode
+            if tool_choice:
+                mode = "AUTO"
+                if isinstance(tool_choice, str):
+                    mode = "ANY" if tool_choice == "required" else "NONE" if tool_choice == "none" else "AUTO"
+                payload["toolConfig"] = {
+                    "functionCallingConfig": {"mode": mode}
+                }
 
         async def _call():
             client = await self.get_client()
@@ -166,6 +186,7 @@ class GeminiAdapter(BaseAIAdapter):
 
         candidates = data.get("candidates", [])
         content_text = ""
+        thought_text = ""
         tool_calls: List[CanonicalToolCall] = []
 
         if candidates:
@@ -173,7 +194,9 @@ class GeminiAdapter(BaseAIAdapter):
             cand_content = cand.get("content", {})
             parts = cand_content.get("parts", [])
             for p in parts:
-                if "text" in p:
+                if "thought" in p and p.get("thought"):
+                    thought_text += p.get("text", "")
+                elif "text" in p:
                     content_text += p["text"]
                 elif "functionCall" in p:
                     fc = p["functionCall"]
@@ -184,6 +207,9 @@ class GeminiAdapter(BaseAIAdapter):
                             arguments=fc.get("args", {}),
                         )
                     )
+
+        if thought_text:
+            content_text = f"<!-- Gemini Thinking:\n{thought_text}\n-->\n\n{content_text}"
 
         usage_meta = data.get("usageMetadata", {})
         prompt_tokens = usage_meta.get("promptTokenCount", 0)
@@ -214,7 +240,7 @@ class GeminiAdapter(BaseAIAdapter):
         tools: Optional[List[Dict[str, Any]]] = None,
     ) -> AsyncGenerator[str, None]:
         if not self.api_key:
-            yield f"[Gemini Streaming Mock - {model_id}]: Streaming content..."
+            yield f"[Gemini 3.8 Streaming Mock - {model_id}]: Streaming content..."
             return
 
         system_instruction, contents = self._convert_to_gemini_contents(messages)

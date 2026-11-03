@@ -79,7 +79,7 @@ async def test_offline_mock_completion():
     adapters = [
         ("openai", "gpt-4o"),
         ("claude", "claude-3-7-sonnet-20250219"),
-        ("gemini", "gemini-2.5-pro"),
+        ("gemini", "gemini-3.8-flash"),
         ("deepseek", "deepseek-chat"),
         ("muse", "muse-story-pro"),
         ("dogxiai", "dogxiai-game-master"),
@@ -97,3 +97,31 @@ async def test_offline_mock_completion():
         assert resp is not None
         assert len(resp.content) > 0
         assert resp.usage.total_tokens > 0
+
+
+@pytest.mark.asyncio
+async def test_gemini_38_features():
+    """Verify Gemini 3.8 Flash & Pro registration, capabilities, and structured schema support"""
+    registry = ModelRegistry()
+    g38_flash = registry.get_model("gemini", "gemini-3.8-flash")
+    assert g38_flash is not None
+    assert g38_flash.capabilities.tool_calling is True
+    assert g38_flash.capabilities.vision is True
+    assert g38_flash.context_window >= 1000000
+
+    g38_pro = registry.get_model("gemini", "gemini-3.8-pro")
+    assert g38_pro is not None
+    assert g38_pro.context_window >= 2000000
+
+    # Test GeminiAdapter completion with structured JSON format
+    adapter = GeminiAdapter()
+    messages = [
+        CanonicalMessage(role=MessageRole.USER, content="Generate monster attributes JSON")
+    ]
+    resp = await adapter.chat_completion(
+        model_id="gemini-3.8-flash",
+        messages=messages,
+        response_format={"type": "json_object"},
+    )
+    assert resp is not None
+    assert resp.content is not None

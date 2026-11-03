@@ -121,8 +121,8 @@
     }
   },
   "icons": {
-    "potion_hp": "dashboard/static/playable\\neon_chronicles\\assets\\icons\\icon_potion_hp.png",
-    "potion_mp": "dashboard/static/playable\\neon_chronicles\\assets\\icons\\icon_potion_mp.png",
-    "skill_slash": "dashboard/static/playable\\neon_chronicles\\assets\\icons\\icon_skill_slash.png"
+    "potion_hp": "C:\\Users\\ACER\\OneDrive\\Desktop\\ai code game studio\\dashboard\\static\\playable\\neon_chronicles\\assets\\icons\\icon_potion_hp.png",
+    "potion_mp": "C:\\Users\\ACER\\OneDrive\\Desktop\\ai code game studio\\dashboard\\static\\playable\\neon_chronicles\\assets\\icons\\icon_potion_mp.png",
+    "skill_slash": "C:\\Users\\ACER\\OneDrive\\Desktop\\ai code game studio\\dashboard\\static\\playable\\neon_chronicles\\assets\\icons\\icon_skill_slash.png"
   }
 }
